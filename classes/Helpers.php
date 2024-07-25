@@ -70,6 +70,7 @@ class Helpers
 		for ($row = 2; $row <= $highestrow; $row++) {
 			$a = array();
 			for ($column = 1; $column <= $columncount; $column++) {
+
 				if (strpos($header[$column], "abstract") !== false) {
 					if ($sheet->getCellByColumnAndRow($column, $row)->getValue() instanceof RichText) {
 						$value = $sheet->getCellByColumnAndRow($column, $row)->getValue();

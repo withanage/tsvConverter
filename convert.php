@@ -24,6 +24,8 @@ ini_set('display_startup_errors', TRUE);
 date_default_timezone_set('Europe/Berlin');
 define('EOL', (PHP_SAPI == 'cli') ? PHP_EOL : '<br />');
 
+$publication_status=3;
+$issue_status=1;
 $fileName = '';
 $files = "files";
 $onlyValidate = 0;
@@ -125,14 +127,12 @@ foreach ($articles as $article) {
 
 function compareIssueDate($a, $b)
 {
-	// Convert the issueDatepublished fields to timestamps for comparison
 	$dateA = strtotime($a['issueDatepublished']);
 	$dateB = strtotime($b['issueDatepublished']);
-
 	return $dateA - $dateB;
 }
 
-// Sort the articles array using usort and the comparison function
+
 usort($articles, 'compareIssueDate');
 
 echo date('H:i:s'), " Starting XML output", EOL;
@@ -154,10 +154,11 @@ echo date('H:i:s'), " Starting XML output", EOL;
  */
 function publicationBeginTag(mixed $article, $xmlfile, string $articleLocale, int $authorId, int $submissionId): void
 {
+	global  $publication_status;
 	if (array_key_exists('articleSeq', $article)) {
-		fwrite($xmlfile, "\t\t\t<publication xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" locale=\"" . $articleLocale . "\" version=\"1\" status=\"3\" primary_contact_id=\"" . $authorId . "\" url_path=\"\" seq=\"" . $article['articleSeq'] . "\" date_published=\"" . $article['issueDatepublished'] . "\" section_ref=\"" . htmlentities($article['sectionAbbrev'], ENT_XML1) . "\" access_status=\"0\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
+		fwrite($xmlfile, "\t\t\t<publication xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" locale=\"" . $articleLocale . "\" version=\"1\" status=\"".$publication_status."\" primary_contact_id=\"" . $authorId . "\" url_path=\"\" seq=\"" . $article['articleSeq'] . "\" date_published=\"" . $article['issueDatepublished'] . "\" section_ref=\"" . htmlentities($article['sectionAbbrev'], ENT_XML1) . "\" access_status=\"0\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
 	} else {
-		fwrite($xmlfile, "\t\t\t<publication xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" locale=\"" . $articleLocale . "\" version=\"1\" status=\"3\" primary_contact_id=\"" . $authorId . "\" url_path=\"\" date_published=\"" . $article['issueDatepublished'] . "\" section_ref=\"" . htmlentities($article['sectionAbbrev'], ENT_XML1) . "\" access_status=\"0\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
+		fwrite($xmlfile, "\t\t\t<publication xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" locale=\"" . $articleLocale . "\" version=\"1\" status=\"".$publication_status."\" primary_contact_id=\"" . $authorId . "\" url_path=\"\" date_published=\"" . $article['issueDatepublished'] . "\" section_ref=\"" . htmlentities($article['sectionAbbrev'], ENT_XML1) . "\" access_status=\"0\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
 	}
 	fwrite($xmlfile, "\t\t\t\t<id type=\"internal\" advice=\"ignore\">" . $submissionId . "</id>\r\n\r\n");
 }
@@ -252,7 +253,7 @@ foreach ($articles as $key => $article) {
 			fwrite($xmlfile, "<issues xmlns=\"http://pkp.sfu.ca\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n");
 		}
 
-		fwrite($xmlfile, "\t<issue xmlns=\"http://pkp.sfu.ca\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" published=\"1\" current=\"0\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
+		fwrite($xmlfile, "\t<issue xmlns=\"http://pkp.sfu.ca\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" published=\"".$issue_status."\" current=\"0\" access_status=\"1\"  xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
 
 		echo date('H:i:s'), " Adding issue with publishing date ", $article['issueDatepublished'], EOL;
 
@@ -276,7 +277,7 @@ foreach ($articles as $key => $article) {
 	}
 
 
-	fwrite($xmlfile, "\t\t<article xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" date_submitted=\"" . $article['issueDatepublished'] . "\" status=\"3\" submission_progress=\"0\" current_publication_id=\"" . $submissionId . "\" stage=\"production\">\r\n\r\n");
+	fwrite($xmlfile, "\t\t<article xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" date_submitted=\"" . $article['issueDatepublished'] . "\" status=\"".$publication_status."\" submission_progress=\"0\" current_publication_id=\"" . $submissionId . "\" stage=\"production\">\r\n\r\n");
 	fwrite($xmlfile, "\t\t\t<id type=\"internal\" advice=\"ignore\">" . $submissionId . "</id>\r\n\r\n");
 
 	# Submission files
