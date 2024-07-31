@@ -24,8 +24,8 @@ ini_set('display_startup_errors', TRUE);
 date_default_timezone_set('Europe/Berlin');
 define('EOL', (PHP_SAPI == 'cli') ? PHP_EOL : '<br />');
 
-$publication_status=3;
-$issue_status=1;
+$publication_status = 3;
+$issue_status = 1;
 $fileName = '';
 $files = "files";
 $onlyValidate = 0;
@@ -33,6 +33,7 @@ $locales = array('en' => 'en_US', 'fi' => 'fi_FI', 'sv' => 'sv_SE', 'de' => 'de_
 $defaultLocale = 'en_US';
 $uploader = "admin";
 $currentIssueDatepublished = null;
+$currentIssueNumber= null;
 $currentYear = null;
 $submission_file_id = 1;
 $authorId = 1;
@@ -154,11 +155,11 @@ echo date('H:i:s'), " Starting XML output", EOL;
  */
 function publicationBeginTag(mixed $article, $xmlfile, string $articleLocale, int $authorId, int $submissionId): void
 {
-	global  $publication_status;
+	global $publication_status;
 	if (array_key_exists('articleSeq', $article)) {
-		fwrite($xmlfile, "\t\t\t<publication xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" locale=\"" . $articleLocale . "\" version=\"1\" status=\"".$publication_status."\" primary_contact_id=\"" . $authorId . "\" url_path=\"\" seq=\"" . $article['articleSeq'] . "\" date_published=\"" . $article['issueDatepublished'] . "\" section_ref=\"" . htmlentities($article['sectionAbbrev'], ENT_XML1) . "\" access_status=\"0\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
+		fwrite($xmlfile, "\t\t\t<publication xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" locale=\"" . $articleLocale . "\" version=\"1\" status=\"" . $publication_status . "\" primary_contact_id=\"" . $authorId . "\" url_path=\"\" seq=\"" . $article['articleSeq'] . "\" date_published=\"" . $article['issueDatepublished'] . "\" section_ref=\"" . htmlentities($article['sectionAbbrev'], ENT_XML1) . "\" access_status=\"0\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
 	} else {
-		fwrite($xmlfile, "\t\t\t<publication xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" locale=\"" . $articleLocale . "\" version=\"1\" status=\"".$publication_status."\" primary_contact_id=\"" . $authorId . "\" url_path=\"\" date_published=\"" . $article['issueDatepublished'] . "\" section_ref=\"" . htmlentities($article['sectionAbbrev'], ENT_XML1) . "\" access_status=\"0\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
+		fwrite($xmlfile, "\t\t\t<publication xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" locale=\"" . $articleLocale . "\" version=\"1\" status=\"" . $publication_status . "\" primary_contact_id=\"" . $authorId . "\" url_path=\"\" date_published=\"" . $article['issueDatepublished'] . "\" section_ref=\"" . htmlentities($article['sectionAbbrev'], ENT_XML1) . "\" access_status=\"0\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
 	}
 	fwrite($xmlfile, "\t\t\t\t<id type=\"internal\" advice=\"ignore\">" . $submissionId . "</id>\r\n\r\n");
 }
@@ -220,6 +221,7 @@ function issue(mixed $article, $xmlfile, string $defaultLocale, $sections1, stri
 	fwrite($xmlfile, "\t\t<articles xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
 
 	$currentIssueDatepublished = $article['issueDatepublished'];
+	$currentIssueNumber = $article['issueNumber'];
 	$currentYear = $newYear;
 	return array($article, $currentIssueDatepublished, $currentYear);
 }
@@ -227,7 +229,7 @@ function issue(mixed $article, $xmlfile, string $defaultLocale, $sections1, stri
 foreach ($articles as $key => $article) {
 
 	# Issue :: if issueDatepublished has changed, start a new issue
-	if ($currentIssueDatepublished != $article['issueDatepublished']) {
+	if ($currentIssueDatepublished != $article['issueDatepublished'] or ($currentIssueNumber != $article['issueNumber'] && ($currentIssueDatepublished == $article['issueDatepublished'] ))) {
 
 
 		# close old issue if one exists
@@ -253,7 +255,7 @@ foreach ($articles as $key => $article) {
 			fwrite($xmlfile, "<issues xmlns=\"http://pkp.sfu.ca\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n");
 		}
 
-		fwrite($xmlfile, "\t<issue xmlns=\"http://pkp.sfu.ca\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" published=\"".$issue_status."\" current=\"0\" access_status=\"1\"  xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
+		fwrite($xmlfile, "\t<issue xmlns=\"http://pkp.sfu.ca\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" published=\"" . $issue_status . "\" current=\"0\" access_status=\"1\"  xsi:schemaLocation=\"http://pkp.sfu.ca native.xsd\">\r\n\r\n");
 
 		echo date('H:i:s'), " Adding issue with publishing date ", $article['issueDatepublished'], EOL;
 
@@ -277,7 +279,7 @@ foreach ($articles as $key => $article) {
 	}
 
 
-	fwrite($xmlfile, "\t\t<article xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" date_submitted=\"" . $article['issueDatepublished'] . "\" status=\"".$publication_status."\" submission_progress=\"0\" current_publication_id=\"" . $submissionId . "\" stage=\"production\">\r\n\r\n");
+	fwrite($xmlfile, "\t\t<article xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" date_submitted=\"" . $article['issueDatepublished'] . "\" status=\"" . $publication_status . "\" submission_progress=\"0\" current_publication_id=\"" . $submissionId . "\" stage=\"production\">\r\n\r\n");
 	fwrite($xmlfile, "\t\t\t<id type=\"internal\" advice=\"ignore\">" . $submissionId . "</id>\r\n\r\n");
 
 	# Submission files
