@@ -28,7 +28,7 @@ class JatsArticle
 				fwrite($xmlfile, Helpers::searchLocalisations('authorFirstname' . $i, $article, 6, 'givenname'));
 
 				if (!empty($article['authorLastname' . $i])) {
-					fwrite($xmlfile, "\t\t\t\t\t\t<familyname locale=\"{$articleLocale}\"><![CDATA[{$article['authorLastname'.$i]}]]></familyname>\r\n");
+					fwrite($xmlfile, "\t\t\t\t\t\t<familyname locale=\"en_US\"><![CDATA[{$article['authorLastname'.$i]}]]></familyname>\r\n");
 					fwrite($xmlfile, Helpers::searchLocalisations('authorLastname' . $i, $article, 6, 'familyname'));
 				}
 
@@ -211,7 +211,7 @@ class JatsArticle
 	public static function doi(mixed $article,$xmlfile): mixed
 	{
 		if (!empty($article['doi'])) {
-			fwrite($xmlfile, "\t\t\t\t<id type=\"doi\" advice=\"update\"><![CDATA[" . $article['doi'] . "]]></id>\r\n");
+			fwrite($xmlfile, "\t\t\t\t<id type=\"doi\" advice=\"update\">". $article['doi'] ."--</id>\r\n");
 		}
 		return $article;
 	}
